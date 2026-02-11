@@ -2,20 +2,20 @@ import type { Platform, Scenario, DimensionScores } from '@/src/types';
 
 export const PLATFORM_COLORS: Record<Platform, string> = {
   lessie: '#3B82F6',
-  exa: '#8B5CF6',
-  dinq: '#10B981',
-  manus: '#F59E0B',
-  gpt: '#74AA9C',
-  gemini: '#EF4444',
+  exa: '#94A3B8',
+  dinq: '#64748B',
+  manus: '#78716C',
+  gpt: '#A1A1AA',
+  gemini: '#71717A',
 };
 
 export const PLATFORM_LABELS: Record<Platform, string> = {
   lessie: 'Lessie',
-  exa: 'EXA',
-  dinq: 'DINQ',
-  manus: 'Manus',
-  gpt: 'GPT',
-  gemini: 'Gemini',
+  exa: 'Platform A',
+  dinq: 'Platform B',
+  manus: 'Platform C',
+  gpt: 'Platform D',
+  gemini: 'Platform E',
 };
 
 export const PLATFORMS: Platform[] = ['lessie', 'exa', 'dinq', 'manus', 'gpt', 'gemini'];
