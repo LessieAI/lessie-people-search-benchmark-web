@@ -36,6 +36,7 @@ const PLATFORM_LABELS: Record<string, string> = {
   exa: 'Exa',
   juicebox: 'Juicebox',
   droid: 'Claude Code',
+  manus: 'Manus',
 };
 
 const PLATFORM_COLORS: Record<string, string> = {
@@ -43,6 +44,7 @@ const PLATFORM_COLORS: Record<string, string> = {
   exa: '#F59E0B',
   juicebox: '#10B981',
   droid: '#8B5CF6',
+  manus: '#EF4444',
 };
 
 const QUERY_TYPE_LABELS: Record<string, string> = {
@@ -106,7 +108,7 @@ export default function ExplorerPage() {
     });
   }, [data, queryType, search]);
 
-  const platforms = ['lessie', 'exa', 'juicebox', 'droid'];
+  const platforms = ['lessie', 'exa', 'juicebox', 'droid', 'manus'];
 
   const stats = useMemo(() => {
     const totalQueries = data.length;

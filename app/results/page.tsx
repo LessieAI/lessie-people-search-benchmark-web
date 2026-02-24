@@ -91,11 +91,14 @@ function RankBadge({ rank }: { rank: number }) {
   );
 }
 
+const ACTIVE_PLATFORMS = EVAL_PLATFORMS.filter((p) => evaluationData[p].total_queries > 0);
+const PENDING_PLATFORMS = EVAL_PLATFORMS.filter((p) => evaluationData[p].total_queries === 0);
+
 export default function ResultsPage() {
   const [expandedCase, setExpandedCase] = useState<string | null>(null);
 
   const rankings = useMemo(() => {
-    const sorted = [...EVAL_PLATFORMS].sort(
+    const sorted = [...ACTIVE_PLATFORMS].sort(
       (a, b) => evaluationData[b].overall.composite - evaluationData[a].overall.composite,
     );
     return sorted.map((p, i) => ({ platform: p, rank: i + 1, data: evaluationData[p] }));
@@ -104,7 +107,7 @@ export default function ResultsPage() {
   const radarData = useMemo(() => {
     return EVAL_DIMENSIONS.map((dim) => {
       const entry: Record<string, string | number> = { dimension: EVAL_DIMENSION_LABELS[dim] };
-      for (const p of EVAL_PLATFORMS) {
+      for (const p of ACTIVE_PLATFORMS) {
         entry[p] = +(evaluationData[p].by_dimension[dim] * 100).toFixed(1);
       }
       return entry;
@@ -114,7 +117,7 @@ export default function ResultsPage() {
   const queryTypeBarData = useMemo(() => {
     return QUERY_TYPES.map((qt) => {
       const entry: Record<string, string | number> = { queryType: QUERY_TYPE_LABELS[qt] };
-      for (const p of EVAL_PLATFORMS) {
+      for (const p of ACTIVE_PLATFORMS) {
         entry[p] = +(evaluationData[p].by_query_type[qt].composite * 100).toFixed(1);
       }
       return entry;
@@ -127,7 +130,7 @@ export default function ResultsPage() {
     if (selectedQueryType === 'all') return null;
     return EVAL_DIMENSIONS.map((dim) => {
       const entry: Record<string, string | number> = { dimension: EVAL_DIMENSION_LABELS[dim] };
-      for (const p of EVAL_PLATFORMS) {
+      for (const p of ACTIVE_PLATFORMS) {
         entry[p] = +(evaluationData[p].by_query_type[selectedQueryType].dimensions[dim] * 100).toFixed(1);
       }
       return entry;
@@ -220,6 +223,16 @@ export default function ResultsPage() {
               </CardContent>
             </Card>
           ))}
+          {PENDING_PLATFORMS.map((p) => (
+            <Card key={p} className="relative overflow-hidden border-dashed">
+              <CardContent className="pt-4 flex flex-col items-center justify-center h-full min-h-[200px]">
+                <span className="text-sm font-semibold" style={{ color: EVAL_PLATFORM_COLORS[p] }}>
+                  {EVAL_PLATFORM_LABELS[p]}
+                </span>
+                <span className="mt-2 text-xs text-muted-foreground">Evaluation in progress</span>
+              </CardContent>
+            </Card>
+          ))}
         </div>
       </section>
 
@@ -235,7 +248,7 @@ export default function ResultsPage() {
                 <PolarAngleAxis dataKey="dimension" fontSize={12} tickLine={false} />
                 <PolarRadiusAxis domain={[0, 100]} tick={false} axisLine={false} />
                 <ChartTooltip content={<ChartTooltipContent />} />
-                {EVAL_PLATFORMS.map((p) => (
+                {ACTIVE_PLATFORMS.map((p) => (
                   <Radar
                     key={p}
                     dataKey={p}
@@ -255,7 +268,7 @@ export default function ResultsPage() {
               <TableHeader>
                 <TableRow className="hover:bg-transparent">
                   <TableHead className="w-40">Metric</TableHead>
-                  {EVAL_PLATFORMS.map((p) => (
+                  {ACTIVE_PLATFORMS.map((p) => (
                     <TableHead key={p} className="text-center">
                       <span className="font-semibold" style={{ color: EVAL_PLATFORM_COLORS[p] }}>
                         {EVAL_PLATFORM_LABELS[p]}
@@ -266,12 +279,12 @@ export default function ResultsPage() {
               </TableHeader>
               <TableBody>
                 {EVAL_DIMENSIONS.map((dim) => {
-                  const vals = EVAL_PLATFORMS.map((p) => evaluationData[p].by_dimension[dim]);
+                  const vals = ACTIVE_PLATFORMS.map((p) => evaluationData[p].by_dimension[dim]);
                   const max = bestInRow(vals);
                   return (
                     <TableRow key={dim}>
                       <TableCell className="font-medium">{EVAL_DIMENSION_LABELS[dim]}</TableCell>
-                      {EVAL_PLATFORMS.map((p, i) => (
+                      {ACTIVE_PLATFORMS.map((p, i) => (
                         <TableCell key={p} className="text-center">
                           <span className={cn(
                             'font-mono text-sm',
@@ -286,8 +299,8 @@ export default function ResultsPage() {
                 })}
                 <TableRow className="border-t-2 border-border">
                   <TableCell className="font-semibold">Judge Score (60%)</TableCell>
-                  {EVAL_PLATFORMS.map((p) => {
-                    const vals = EVAL_PLATFORMS.map((pp) => evaluationData[pp].overall.judge_score);
+                  {ACTIVE_PLATFORMS.map((p) => {
+                    const vals = ACTIVE_PLATFORMS.map((pp) => evaluationData[pp].overall.judge_score);
                     const max = bestInRow(vals);
                     const v = evaluationData[p].overall.judge_score;
                     return (
@@ -304,8 +317,8 @@ export default function ResultsPage() {
                 </TableRow>
                 <TableRow>
                   <TableCell className="font-semibold">Richness (15%)</TableCell>
-                  {EVAL_PLATFORMS.map((p) => {
-                    const vals = EVAL_PLATFORMS.map((pp) => evaluationData[pp].overall.richness);
+                  {ACTIVE_PLATFORMS.map((p) => {
+                    const vals = ACTIVE_PLATFORMS.map((pp) => evaluationData[pp].overall.richness);
                     const max = bestInRow(vals);
                     const v = evaluationData[p].overall.richness;
                     return (
@@ -322,8 +335,8 @@ export default function ResultsPage() {
                 </TableRow>
                 <TableRow>
                   <TableCell className="font-semibold">Coverage (25%)</TableCell>
-                  {EVAL_PLATFORMS.map((p) => {
-                    const vals = EVAL_PLATFORMS.map((pp) => evaluationData[pp].overall.coverage);
+                  {ACTIVE_PLATFORMS.map((p) => {
+                    const vals = ACTIVE_PLATFORMS.map((pp) => evaluationData[pp].overall.coverage);
                     const max = bestInRow(vals);
                     const v = evaluationData[p].overall.coverage;
                     return (
@@ -340,8 +353,8 @@ export default function ResultsPage() {
                 </TableRow>
                 <TableRow className="border-t border-border bg-muted/30">
                   <TableCell className="font-bold">Composite Score</TableCell>
-                  {EVAL_PLATFORMS.map((p) => {
-                    const vals = EVAL_PLATFORMS.map((pp) => evaluationData[pp].overall.composite);
+                  {ACTIVE_PLATFORMS.map((p) => {
+                    const vals = ACTIVE_PLATFORMS.map((pp) => evaluationData[pp].overall.composite);
                     const max = bestInRow(vals);
                     const v = evaluationData[p].overall.composite;
                     return (
@@ -358,8 +371,8 @@ export default function ResultsPage() {
                 </TableRow>
                 <TableRow>
                   <TableCell className="font-semibold">Total Persons</TableCell>
-                  {EVAL_PLATFORMS.map((p) => {
-                    const vals = EVAL_PLATFORMS.map((pp) => evaluationData[pp].total_persons);
+                  {ACTIVE_PLATFORMS.map((p) => {
+                    const vals = ACTIVE_PLATFORMS.map((pp) => evaluationData[pp].total_persons);
                     const max = bestInRow(vals);
                     const v = evaluationData[p].total_persons;
                     return (
@@ -391,7 +404,7 @@ export default function ResultsPage() {
               <YAxis domain={[0, 100]} tickLine={false} axisLine={false} fontSize={12} />
               <ChartTooltip content={<ChartTooltipContent />} />
               <ChartLegend content={<ChartLegendContent />} />
-              {EVAL_PLATFORMS.map((p) => (
+              {ACTIVE_PLATFORMS.map((p) => (
                 <Bar
                   key={p}
                   dataKey={p}
@@ -425,7 +438,7 @@ export default function ResultsPage() {
                 <TableRow className="hover:bg-transparent">
                   <TableHead>Query Type</TableHead>
                   <TableHead className="text-center">Queries</TableHead>
-                  {EVAL_PLATFORMS.map((p) => (
+                  {ACTIVE_PLATFORMS.map((p) => (
                     <TableHead key={p} className="text-center">
                       <span style={{ color: EVAL_PLATFORM_COLORS[p] }}>{EVAL_PLATFORM_LABELS[p]}</span>
                     </TableHead>
@@ -434,15 +447,15 @@ export default function ResultsPage() {
               </TableHeader>
               <TableBody>
                 {QUERY_TYPES.map((qt) => {
-                  const vals = EVAL_PLATFORMS.map((p) => evaluationData[p].by_query_type[qt].composite);
+                  const vals = ACTIVE_PLATFORMS.map((p) => evaluationData[p].by_query_type[qt].composite);
                   const max = bestInRow(vals);
                   return (
                     <TableRow key={qt}>
                       <TableCell className="font-medium">{QUERY_TYPE_LABELS[qt]}</TableCell>
                       <TableCell className="text-center text-muted-foreground text-sm">
-                        ~{Math.round(EVAL_PLATFORMS.reduce((s, p) => s + evaluationData[p].by_query_type[qt].count, 0) / EVAL_PLATFORMS.length)}
+                        ~{Math.round(ACTIVE_PLATFORMS.reduce((s, p) => s + evaluationData[p].by_query_type[qt].count, 0) / ACTIVE_PLATFORMS.length)}
                       </TableCell>
-                      {EVAL_PLATFORMS.map((p, i) => (
+                      {ACTIVE_PLATFORMS.map((p, i) => (
                         <TableCell key={p} className="text-center">
                           <span className={cn(
                             'font-mono text-sm',
@@ -468,7 +481,7 @@ export default function ResultsPage() {
                     <PolarAngleAxis dataKey="dimension" fontSize={11} tickLine={false} />
                     <PolarRadiusAxis domain={[0, 100]} tick={false} axisLine={false} />
                     <ChartTooltip content={<ChartTooltipContent />} />
-                    {EVAL_PLATFORMS.map((p) => (
+                    {ACTIVE_PLATFORMS.map((p) => (
                       <Radar
                         key={p}
                         dataKey={p}
@@ -487,7 +500,7 @@ export default function ResultsPage() {
                   <TableHeader>
                     <TableRow className="hover:bg-transparent">
                       <TableHead>Dimension</TableHead>
-                      {EVAL_PLATFORMS.map((p) => (
+                      {ACTIVE_PLATFORMS.map((p) => (
                         <TableHead key={p} className="text-center">
                           <span style={{ color: EVAL_PLATFORM_COLORS[p] }}>{EVAL_PLATFORM_LABELS[p]}</span>
                         </TableHead>
@@ -496,12 +509,12 @@ export default function ResultsPage() {
                   </TableHeader>
                   <TableBody>
                     {EVAL_DIMENSIONS.map((dim) => {
-                      const vals = EVAL_PLATFORMS.map((p) => evaluationData[p].by_query_type[selectedQueryType as QueryType].dimensions[dim]);
+                      const vals = ACTIVE_PLATFORMS.map((p) => evaluationData[p].by_query_type[selectedQueryType as QueryType].dimensions[dim]);
                       const max = bestInRow(vals);
                       return (
                         <TableRow key={dim}>
                           <TableCell className="font-medium">{EVAL_DIMENSION_LABELS[dim]}</TableCell>
-                          {EVAL_PLATFORMS.map((p, i) => (
+                          {ACTIVE_PLATFORMS.map((p, i) => (
                             <TableCell key={p} className="text-center">
                               <span className={cn(
                                 'font-mono text-sm',
@@ -516,8 +529,8 @@ export default function ResultsPage() {
                     })}
                     <TableRow className="border-t-2 border-border">
                       <TableCell className="font-semibold">Composite</TableCell>
-                      {EVAL_PLATFORMS.map((p) => {
-                        const vals = EVAL_PLATFORMS.map((pp) => evaluationData[pp].by_query_type[selectedQueryType as QueryType].composite);
+                      {ACTIVE_PLATFORMS.map((p) => {
+                        const vals = ACTIVE_PLATFORMS.map((pp) => evaluationData[pp].by_query_type[selectedQueryType as QueryType].composite);
                         const max = bestInRow(vals);
                         const v = evaluationData[p].by_query_type[selectedQueryType as QueryType].composite;
                         return (
@@ -565,7 +578,7 @@ export default function ResultsPage() {
                     </div>
                     <p className="text-sm font-medium truncate pr-4">&ldquo;{cs.prompt}&rdquo;</p>
                     <div className="flex items-center gap-4 mt-2">
-                      {EVAL_PLATFORMS.filter((p) => cs.platforms[p]).map((p) => {
+                      {ACTIVE_PLATFORMS.filter((p) => cs.platforms[p]).map((p) => {
                         const pd = cs.platforms[p]!;
                         return (
                           <span key={p} className="text-xs">
@@ -587,9 +600,9 @@ export default function ResultsPage() {
                 {isExpanded && (
                   <div className="border-t border-border/40 p-4">
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                      {EVAL_PLATFORMS.filter((p) => cs.platforms[p]).map((p) => {
+                      {ACTIVE_PLATFORMS.filter((p) => cs.platforms[p]).map((p) => {
                         const pd = cs.platforms[p]!;
-                        const availablePlatforms = EVAL_PLATFORMS.filter((pp) => cs.platforms[pp]);
+                        const availablePlatforms = ACTIVE_PLATFORMS.filter((pp) => cs.platforms[pp]);
                         const hasBest = availablePlatforms.every(
                           (pp) => (cs.platforms[pp]?.score ?? 0) <= pd.score,
                         );

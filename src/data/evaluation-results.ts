@@ -1,4 +1,4 @@
-export type EvalPlatform = 'lessie' | 'exa' | 'juicebox' | 'droid';
+export type EvalPlatform = 'lessie' | 'exa' | 'juicebox' | 'droid' | 'manus';
 
 export type QueryType = 'b2b_prospecting' | 'recruiting' | 'influencer_search' | 'deterministic';
 
@@ -31,13 +31,14 @@ export interface PlatformEvalData {
   }>;
 }
 
-export const EVAL_PLATFORMS: EvalPlatform[] = ['lessie', 'exa', 'juicebox', 'droid'];
+export const EVAL_PLATFORMS: EvalPlatform[] = ['lessie', 'exa', 'juicebox', 'droid', 'manus'];
 
 export const EVAL_PLATFORM_LABELS: Record<EvalPlatform, string> = {
   lessie: 'Lessie',
   exa: 'Exa',
   juicebox: 'Juicebox',
   droid: 'Claude Code',
+  manus: 'Manus',
 };
 
 export const EVAL_PLATFORM_COLORS: Record<EvalPlatform, string> = {
@@ -45,6 +46,7 @@ export const EVAL_PLATFORM_COLORS: Record<EvalPlatform, string> = {
   exa: '#F59E0B',
   juicebox: '#10B981',
   droid: '#8B5CF6',
+  manus: '#EF4444',
 };
 
 export const QUERY_TYPE_LABELS: Record<QueryType, string> = {
@@ -167,6 +169,22 @@ export const evaluationData: Record<EvalPlatform, PlatformEvalData> = {
       recruiting: { count: 119, avg_score: 0.8819, coverage: 0.6419, composite: 0.8299, dimensions: makeDims(0.9080, 0.9356, 0.6643, 10.3, 0.8799, 0.7106) },
       influencer_search: { count: 36, avg_score: 0.7584, coverage: 0.7071, composite: 0.7642, dimensions: makeDims(0.7948, 0.8823, 0.5124, 12.5, 0.5555, 0.5121) },
       deterministic: { count: 46, avg_score: 0.8625, coverage: 0.5933, composite: 0.8092, dimensions: makeDims(0.8374, 0.9557, 0.4864, 8.8, 0.8162, 0.7051) },
+    },
+  },
+  manus: {
+    total_queries: 0,
+    total_queries_original: 0,
+    total_persons: 0,
+    top_k_persons: 0,
+    model: 'google/gemini-3-flash-preview',
+    timing: { total_time_human: '--', avg_seconds_per_person: 0 },
+    overall: { judge_score: 0, richness: 0, coverage: 0, composite: 0 },
+    by_dimension: makeDims(0, 0, 0, 0, 0, 0),
+    by_query_type: {
+      b2b_prospecting: { count: 0, avg_score: 0, coverage: 0, composite: 0, dimensions: makeDims(0, 0, 0, 0, 0, 0) },
+      recruiting: { count: 0, avg_score: 0, coverage: 0, composite: 0, dimensions: makeDims(0, 0, 0, 0, 0, 0) },
+      influencer_search: { count: 0, avg_score: 0, coverage: 0, composite: 0, dimensions: makeDims(0, 0, 0, 0, 0, 0) },
+      deterministic: { count: 0, avg_score: 0, coverage: 0, composite: 0, dimensions: makeDims(0, 0, 0, 0, 0, 0) },
     },
   },
 };

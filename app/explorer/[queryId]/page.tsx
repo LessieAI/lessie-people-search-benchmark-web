@@ -45,6 +45,7 @@ const PLATFORM_LABELS: Record<string, string> = {
   exa: 'Exa',
   juicebox: 'Juicebox',
   droid: 'Claude Code',
+  manus: 'Manus',
 };
 
 const PLATFORM_COLORS: Record<string, string> = {
@@ -52,6 +53,7 @@ const PLATFORM_COLORS: Record<string, string> = {
   exa: '#F59E0B',
   juicebox: '#10B981',
   droid: '#8B5CF6',
+  manus: '#EF4444',
 };
 
 const DIM_LABELS: Record<string, string> = {
