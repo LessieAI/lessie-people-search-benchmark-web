@@ -96,7 +96,7 @@ export default function ResultsPage() {
 
   const rankings = useMemo(() => {
     const sorted = [...EVAL_PLATFORMS].sort(
-      (a, b) => evaluationData[b].overall.judge_score - evaluationData[a].overall.judge_score,
+      (a, b) => evaluationData[b].overall.composite - evaluationData[a].overall.composite,
     );
     return sorted.map((p, i) => ({ platform: p, rank: i + 1, data: evaluationData[p] }));
   }, []);
@@ -115,7 +115,7 @@ export default function ResultsPage() {
     return QUERY_TYPES.map((qt) => {
       const entry: Record<string, string | number> = { queryType: QUERY_TYPE_LABELS[qt] };
       for (const p of EVAL_PLATFORMS) {
-        entry[p] = +(evaluationData[p].by_query_type[qt].avg_score * 100).toFixed(1);
+        entry[p] = +(evaluationData[p].by_query_type[qt].composite * 100).toFixed(1);
       }
       return entry;
     });
@@ -146,11 +146,9 @@ export default function ResultsPage() {
           scored by Gemini 3 Flash on relevance, accuracy, and uniqueness.
         </p>
         <div className="mt-4 inline-flex items-center gap-2 rounded-full bg-muted/50 px-4 py-1.5 text-xs text-muted-foreground">
-          <span>Evaluation Model: Gemini 3 Flash Preview</span>
+          <span>Gemini 3 Flash Preview</span>
           <span className="text-border">|</span>
-          <span>Top-25 Quality Scoring</span>
-          <span className="text-border">|</span>
-          <span>6 Dimensions</span>
+          <span>60% Judge + 15% Richness + 25% Coverage</span>
         </div>
       </div>
 
@@ -160,7 +158,7 @@ export default function ResultsPage() {
           <Trophy className="size-5 text-yellow-500" />
           Overall Rankings
         </h2>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {rankings.map(({ platform, rank, data }) => (
             <Card key={platform} className={cn(
               'relative overflow-hidden',
@@ -178,8 +176,22 @@ export default function ResultsPage() {
                     </span>
                   </div>
                   <span className="text-2xl font-bold font-mono">
-                    {pct(data.overall.judge_score)}
+                    {pct(data.overall.composite)}
                   </span>
+                </div>
+                <div className="grid grid-cols-3 gap-1 text-center text-[10px] text-muted-foreground mb-3">
+                  <div>
+                    <div>Judge 60%</div>
+                    <div className="font-mono text-xs text-foreground">{pct(data.overall.judge_score)}</div>
+                  </div>
+                  <div>
+                    <div>Rich 15%</div>
+                    <div className="font-mono text-xs text-foreground">{pct(data.overall.richness)}</div>
+                  </div>
+                  <div>
+                    <div>Cov 25%</div>
+                    <div className="font-mono text-xs text-foreground">{pct(data.overall.coverage)}</div>
+                  </div>
                 </div>
                 <div className="space-y-2 mt-4">
                   {EVAL_DIMENSIONS.map((dim) => (
@@ -273,7 +285,7 @@ export default function ResultsPage() {
                   );
                 })}
                 <TableRow className="border-t-2 border-border">
-                  <TableCell className="font-semibold">Overall Score</TableCell>
+                  <TableCell className="font-semibold">Judge Score (60%)</TableCell>
                   {EVAL_PLATFORMS.map((p) => {
                     const vals = EVAL_PLATFORMS.map((pp) => evaluationData[pp].overall.judge_score);
                     const max = bestInRow(vals);
@@ -291,7 +303,7 @@ export default function ResultsPage() {
                   })}
                 </TableRow>
                 <TableRow>
-                  <TableCell className="font-semibold">Richness</TableCell>
+                  <TableCell className="font-semibold">Richness (15%)</TableCell>
                   {EVAL_PLATFORMS.map((p) => {
                     const vals = EVAL_PLATFORMS.map((pp) => evaluationData[pp].overall.richness);
                     const max = bestInRow(vals);
@@ -301,6 +313,42 @@ export default function ResultsPage() {
                         <span className={cn(
                           'font-mono text-sm',
                           v === max ? 'font-bold text-green-400' : 'text-muted-foreground',
+                        )}>
+                          {pct(v)}
+                        </span>
+                      </TableCell>
+                    );
+                  })}
+                </TableRow>
+                <TableRow>
+                  <TableCell className="font-semibold">Coverage (25%)</TableCell>
+                  {EVAL_PLATFORMS.map((p) => {
+                    const vals = EVAL_PLATFORMS.map((pp) => evaluationData[pp].overall.coverage);
+                    const max = bestInRow(vals);
+                    const v = evaluationData[p].overall.coverage;
+                    return (
+                      <TableCell key={p} className="text-center">
+                        <span className={cn(
+                          'font-mono text-sm',
+                          v === max ? 'font-bold text-green-400' : 'text-muted-foreground',
+                        )}>
+                          {pct(v)}
+                        </span>
+                      </TableCell>
+                    );
+                  })}
+                </TableRow>
+                <TableRow className="border-t border-border bg-muted/30">
+                  <TableCell className="font-bold">Composite Score</TableCell>
+                  {EVAL_PLATFORMS.map((p) => {
+                    const vals = EVAL_PLATFORMS.map((pp) => evaluationData[pp].overall.composite);
+                    const max = bestInRow(vals);
+                    const v = evaluationData[p].overall.composite;
+                    return (
+                      <TableCell key={p} className="text-center">
+                        <span className={cn(
+                          'font-mono text-sm font-bold',
+                          v === max ? 'text-green-400' : 'text-muted-foreground',
                         )}>
                           {pct(v)}
                         </span>
@@ -386,13 +434,13 @@ export default function ResultsPage() {
               </TableHeader>
               <TableBody>
                 {QUERY_TYPES.map((qt) => {
-                  const vals = EVAL_PLATFORMS.map((p) => evaluationData[p].by_query_type[qt].avg_score);
+                  const vals = EVAL_PLATFORMS.map((p) => evaluationData[p].by_query_type[qt].composite);
                   const max = bestInRow(vals);
                   return (
                     <TableRow key={qt}>
                       <TableCell className="font-medium">{QUERY_TYPE_LABELS[qt]}</TableCell>
                       <TableCell className="text-center text-muted-foreground text-sm">
-                        ~{Math.round(EVAL_PLATFORMS.reduce((s, p) => s + evaluationData[p].by_query_type[qt].count, 0) / 3)}
+                        ~{Math.round(EVAL_PLATFORMS.reduce((s, p) => s + evaluationData[p].by_query_type[qt].count, 0) / EVAL_PLATFORMS.length)}
                       </TableCell>
                       {EVAL_PLATFORMS.map((p, i) => (
                         <TableCell key={p} className="text-center">
@@ -467,16 +515,16 @@ export default function ResultsPage() {
                       );
                     })}
                     <TableRow className="border-t-2 border-border">
-                      <TableCell className="font-semibold">Overall</TableCell>
+                      <TableCell className="font-semibold">Composite</TableCell>
                       {EVAL_PLATFORMS.map((p) => {
-                        const vals = EVAL_PLATFORMS.map((pp) => evaluationData[pp].by_query_type[selectedQueryType as QueryType].avg_score);
+                        const vals = EVAL_PLATFORMS.map((pp) => evaluationData[pp].by_query_type[selectedQueryType as QueryType].composite);
                         const max = bestInRow(vals);
-                        const v = evaluationData[p].by_query_type[selectedQueryType as QueryType].avg_score;
+                        const v = evaluationData[p].by_query_type[selectedQueryType as QueryType].composite;
                         return (
                           <TableCell key={p} className="text-center">
                             <span className={cn(
-                              'font-mono text-sm',
-                              v === max ? 'font-bold text-green-400' : 'text-muted-foreground',
+                              'font-mono text-sm font-bold',
+                              v === max ? 'text-green-400' : 'text-muted-foreground',
                             )}>
                               {pct(v)}
                             </span>

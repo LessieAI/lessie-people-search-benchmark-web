@@ -20,11 +20,13 @@ export interface PlatformEvalData {
   top_k_persons: number;
   model: string;
   timing: { total_time_human: string; avg_seconds_per_person: number };
-  overall: { judge_score: number; richness: number };
+  overall: { judge_score: number; richness: number; coverage: number; composite: number };
   by_dimension: QueryTypeDimensions;
   by_query_type: Record<QueryType, {
     count: number;
     avg_score: number;
+    coverage: number;
+    composite: number;
     dimensions: QueryTypeDimensions;
   }>;
 }
@@ -83,6 +85,18 @@ function normDepth(raw: number): number {
   return Math.min(raw / DEPTH_NORM, 1.0);
 }
 
+// Coverage: sqrt-based normalization against baseline of 25 results per query
+const COVERAGE_BASELINE = 25;
+
+export function computeCoverage(avgDepth: number): number {
+  return Math.min(1.0, Math.sqrt(avgDepth) / Math.sqrt(COVERAGE_BASELINE));
+}
+
+// Composite score: 60% Judge + 15% Richness + 25% Coverage
+export function computeComposite(judge: number, richness: number, coverage: number): number {
+  return 0.60 * judge + 0.15 * richness + 0.25 * coverage;
+}
+
 function makeDims(
   relevance: number, accuracy: number, uniqueness: number,
   result_depth: number, high_quality_rate: number, precision_at_k: number,
@@ -98,13 +112,13 @@ export const evaluationData: Record<EvalPlatform, PlatformEvalData> = {
     top_k_persons: 6231,
     model: 'google/gemini-3-flash-preview',
     timing: { total_time_human: '10.6h', avg_seconds_per_person: 2.46 },
-    overall: { judge_score: 0.8445, richness: 0.8252 },
+    overall: { judge_score: 0.8445, richness: 0.8252, coverage: 1.0, composite: 0.8805 },
     by_dimension: makeDims(0.8679, 0.9430, 0.6533, 48.4, 0.8231, 0.6745),
     by_query_type: {
-      b2b_prospecting: { count: 109, avg_score: 0.8326, dimensions: makeDims(0.8326, 0.9404, 0.6429, 48.0, 0.7935, 0.6152) },
-      recruiting: { count: 127, avg_score: 0.8583, dimensions: makeDims(0.9029, 0.9551, 0.6639, 48.9, 0.8618, 0.7155) },
-      influencer_search: { count: 36, avg_score: 0.8661, dimensions: makeDims(0.8894, 0.9851, 0.6887, 59.5, 0.8247, 0.6559) },
-      deterministic: { count: 35, avg_score: 0.8275, dimensions: makeDims(0.8394, 0.8692, 0.6143, 38.1, 0.7921, 0.7724) },
+      b2b_prospecting: { count: 109, avg_score: 0.8326, coverage: 1.0, composite: 0.8906, dimensions: makeDims(0.8326, 0.9404, 0.6429, 48.0, 0.7935, 0.6152) },
+      recruiting: { count: 127, avg_score: 0.8583, coverage: 1.0, composite: 0.9082, dimensions: makeDims(0.9029, 0.9551, 0.6639, 48.9, 0.8618, 0.7155) },
+      influencer_search: { count: 36, avg_score: 0.8661, coverage: 1.0, composite: 0.9174, dimensions: makeDims(0.8894, 0.9851, 0.6887, 59.5, 0.8247, 0.6559) },
+      deterministic: { count: 35, avg_score: 0.8275, coverage: 1.0, composite: 0.8769, dimensions: makeDims(0.8394, 0.8692, 0.6143, 38.1, 0.7921, 0.7724) },
     },
   },
   exa: {
@@ -114,13 +128,13 @@ export const evaluationData: Record<EvalPlatform, PlatformEvalData> = {
     top_k_persons: 9000,
     model: 'google/gemini-3-flash-preview',
     timing: { total_time_human: '4.7h', avg_seconds_per_person: 1.89 },
-    overall: { judge_score: 0.7242, richness: 0.8966 },
+    overall: { judge_score: 0.7242, richness: 0.8966, coverage: 1.0, composite: 0.8190 },
     by_dimension: makeDims(0.5594, 0.9473, 0.6271, 25.0, 0.4716, 0.2993),
     by_query_type: {
-      b2b_prospecting: { count: 132, avg_score: 0.6583, dimensions: makeDims(0.4369, 0.9473, 0.6027, 25.0, 0.3103, 0.1721) },
-      recruiting: { count: 136, avg_score: 0.8325, dimensions: makeDims(0.7920, 0.9728, 0.6788, 25.0, 0.7350, 0.5006) },
-      influencer_search: { count: 44, avg_score: 0.5564, dimensions: makeDims(0.3578, 0.9425, 0.5691, 25.0, 0.1582, 0.0936) },
-      deterministic: { count: 45, avg_score: 0.7541, dimensions: makeDims(0.4109, 0.8763, 0.5975, 25.0, 0.4524, 0.2684) },
+      b2b_prospecting: { count: 132, avg_score: 0.6583, coverage: 1.0, composite: 0.7871, dimensions: makeDims(0.4369, 0.9473, 0.6027, 25.0, 0.3103, 0.1721) },
+      recruiting: { count: 136, avg_score: 0.8325, coverage: 1.0, composite: 0.8954, dimensions: makeDims(0.7920, 0.9728, 0.6788, 25.0, 0.7350, 0.5006) },
+      influencer_search: { count: 44, avg_score: 0.5564, coverage: 1.0, composite: 0.7252, dimensions: makeDims(0.3578, 0.9425, 0.5691, 25.0, 0.1582, 0.0936) },
+      deterministic: { count: 45, avg_score: 0.7541, coverage: 1.0, composite: 0.8339, dimensions: makeDims(0.4109, 0.8763, 0.5975, 25.0, 0.4524, 0.2684) },
     },
   },
   juicebox: {
@@ -130,13 +144,13 @@ export const evaluationData: Record<EvalPlatform, PlatformEvalData> = {
     top_k_persons: 8333,
     model: 'google/gemini-3-flash-preview',
     timing: { total_time_human: '4.7h', avg_seconds_per_person: 2.03 },
-    overall: { judge_score: 0.7300, richness: 0.9534 },
+    overall: { judge_score: 0.7300, richness: 0.9534, coverage: 0.9737, composite: 0.8244 },
     by_dimension: makeDims(0.5149, 0.9719, 0.6378, 23.7, 0.4558, 0.2922),
     by_query_type: {
-      b2b_prospecting: { count: 133, avg_score: 0.6508, dimensions: makeDims(0.3618, 0.9855, 0.6153, 23.7, 0.2600, 0.1368) },
-      recruiting: { count: 130, avg_score: 0.8776, dimensions: makeDims(0.8442, 0.9854, 0.6945, 23.9, 0.8129, 0.5673) },
-      influencer_search: { count: 42, avg_score: 0.5403, dimensions: makeDims(0.2846, 0.9674, 0.5880, 23.9, 0.1114, 0.0677) },
-      deterministic: { count: 45, avg_score: 0.7123, dimensions: makeDims(0.2076, 0.8921, 0.5795, 22.4, 0.3171, 0.1635) },
+      b2b_prospecting: { count: 133, avg_score: 0.6508, coverage: 0.9737, composite: 0.7817, dimensions: makeDims(0.3618, 0.9855, 0.6153, 23.7, 0.2600, 0.1368) },
+      recruiting: { count: 130, avg_score: 0.8776, coverage: 0.9778, composite: 0.9188, dimensions: makeDims(0.8442, 0.9854, 0.6945, 23.9, 0.8129, 0.5673) },
+      influencer_search: { count: 42, avg_score: 0.5403, coverage: 0.9778, composite: 0.7137, dimensions: makeDims(0.2846, 0.9674, 0.5880, 23.9, 0.1114, 0.0677) },
+      deterministic: { count: 45, avg_score: 0.7123, coverage: 0.9466, composite: 0.7978, dimensions: makeDims(0.2076, 0.8921, 0.5795, 22.4, 0.3171, 0.1635) },
     },
   },
   droid: {
@@ -146,13 +160,13 @@ export const evaluationData: Record<EvalPlatform, PlatformEvalData> = {
     top_k_persons: 2942,
     model: 'google/gemini-3-flash-preview',
     timing: { total_time_human: '1.8h', avg_seconds_per_person: 2.21 },
-    overall: { judge_score: 0.8327, richness: 0.8358 },
+    overall: { judge_score: 0.8327, richness: 0.8358, coverage: 0.6450, composite: 0.7862 },
     by_dimension: makeDims(0.8371, 0.9244, 0.5870, 10.4, 0.7455, 0.6211),
     by_query_type: {
-      b2b_prospecting: { count: 79, avg_score: 0.7744, dimensions: makeDims(0.7474, 0.9093, 0.5610, 10.4, 0.5845, 0.4811) },
-      recruiting: { count: 119, avg_score: 0.8819, dimensions: makeDims(0.9080, 0.9356, 0.6643, 10.3, 0.8799, 0.7106) },
-      influencer_search: { count: 36, avg_score: 0.7584, dimensions: makeDims(0.7948, 0.8823, 0.5124, 12.5, 0.5555, 0.5121) },
-      deterministic: { count: 46, avg_score: 0.8625, dimensions: makeDims(0.8374, 0.9557, 0.4864, 8.8, 0.8162, 0.7051) },
+      b2b_prospecting: { count: 79, avg_score: 0.7744, coverage: 0.6450, composite: 0.7623, dimensions: makeDims(0.7474, 0.9093, 0.5610, 10.4, 0.5845, 0.4811) },
+      recruiting: { count: 119, avg_score: 0.8819, coverage: 0.6419, composite: 0.8299, dimensions: makeDims(0.9080, 0.9356, 0.6643, 10.3, 0.8799, 0.7106) },
+      influencer_search: { count: 36, avg_score: 0.7584, coverage: 0.7071, composite: 0.7642, dimensions: makeDims(0.7948, 0.8823, 0.5124, 12.5, 0.5555, 0.5121) },
+      deterministic: { count: 46, avg_score: 0.8625, coverage: 0.5933, composite: 0.8092, dimensions: makeDims(0.8374, 0.9557, 0.4864, 8.8, 0.8162, 0.7051) },
     },
   },
 };

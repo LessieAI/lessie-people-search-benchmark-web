@@ -216,9 +216,17 @@ export default function MethodologyPage() {
           <p className="mt-1 font-mono text-sm text-foreground">
             Judge Score = 0.30 &times; Relevance + 0.30 &times; Accuracy + 0.20 &times; Completeness + 0.20 &times; Uniqueness
           </p>
-          <p className="mt-2 text-xs font-medium text-muted-foreground">Overall Score (per query)</p>
+          <p className="mt-2 text-xs font-medium text-muted-foreground">Composite Score (per query)</p>
           <p className="mt-1 font-mono text-sm text-foreground">
-            Final = 82.4% &times; Judge Agent Avg + 17.6% &times; Richness Score
+            Composite = 60% &times; Judge Agent Avg + 15% &times; Richness + 25% &times; Coverage
+          </p>
+          <p className="mt-2 text-xs font-medium text-muted-foreground">Coverage Score</p>
+          <p className="mt-1 font-mono text-sm text-foreground">
+            Coverage = min(1.0, &radic;(result_count) / &radic;(25))
+          </p>
+          <p className="mt-1 text-xs text-muted-foreground">
+            Baseline of 25 results per query. Platforms returning fewer results are penalized using sqrt decay
+            to account for incomplete search coverage. Platforms returning 25+ results receive full coverage credit.
           </p>
         </CardContent>
       </Card>
