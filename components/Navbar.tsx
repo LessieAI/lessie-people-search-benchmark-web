@@ -8,11 +8,9 @@ import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
 const NAV_LINKS = [
-  { href: '/', label: 'Home' },
-  { href: '/leaderboard', label: 'Leaderboard' },
-  { href: '/cases', label: 'Cases' },
+  { href: '/results', label: 'Results' },
+  { href: '/explorer', label: 'Explorer' },
   { href: '/methodology', label: 'Methodology' },
-  { href: '/submit', label: 'Submit' },
 ];
 
 export function Navbar() {
