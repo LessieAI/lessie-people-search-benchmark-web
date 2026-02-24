@@ -1,4 +1,4 @@
-export type EvalPlatform = 'lessie' | 'exa' | 'juicebox';
+export type EvalPlatform = 'lessie' | 'exa' | 'juicebox' | 'droid';
 
 export type QueryType = 'b2b_prospecting' | 'recruiting' | 'influencer_search' | 'deterministic';
 
@@ -29,18 +29,20 @@ export interface PlatformEvalData {
   }>;
 }
 
-export const EVAL_PLATFORMS: EvalPlatform[] = ['lessie', 'exa', 'juicebox'];
+export const EVAL_PLATFORMS: EvalPlatform[] = ['lessie', 'exa', 'juicebox', 'droid'];
 
 export const EVAL_PLATFORM_LABELS: Record<EvalPlatform, string> = {
   lessie: 'Lessie',
   exa: 'Exa',
   juicebox: 'Juicebox',
+  droid: 'Claude Code',
 };
 
 export const EVAL_PLATFORM_COLORS: Record<EvalPlatform, string> = {
   lessie: '#3B82F6',
   exa: '#F59E0B',
   juicebox: '#10B981',
+  droid: '#8B5CF6',
 };
 
 export const QUERY_TYPE_LABELS: Record<QueryType, string> = {
@@ -137,6 +139,22 @@ export const evaluationData: Record<EvalPlatform, PlatformEvalData> = {
       deterministic: { count: 45, avg_score: 0.7123, dimensions: makeDims(0.2076, 0.8921, 0.5795, 22.4, 0.3171, 0.1635) },
     },
   },
+  droid: {
+    total_queries: 284,
+    total_queries_original: 284,
+    total_persons: 2942,
+    top_k_persons: 2942,
+    model: 'google/gemini-3-flash-preview',
+    timing: { total_time_human: '1.8h', avg_seconds_per_person: 2.21 },
+    overall: { judge_score: 0.8327, richness: 0.8358 },
+    by_dimension: makeDims(0.8371, 0.9244, 0.5870, 10.4, 0.7455, 0.6211),
+    by_query_type: {
+      b2b_prospecting: { count: 79, avg_score: 0.7744, dimensions: makeDims(0.7474, 0.9093, 0.5610, 10.4, 0.5845, 0.4811) },
+      recruiting: { count: 119, avg_score: 0.8819, dimensions: makeDims(0.9080, 0.9356, 0.6643, 10.3, 0.8799, 0.7106) },
+      influencer_search: { count: 36, avg_score: 0.7584, dimensions: makeDims(0.7948, 0.8823, 0.5124, 12.5, 0.5555, 0.5121) },
+      deterministic: { count: 46, avg_score: 0.8625, dimensions: makeDims(0.8374, 0.9557, 0.4864, 8.8, 0.8162, 0.7051) },
+    },
+  },
 };
 
 export interface CaseStudyExample {
@@ -158,7 +176,7 @@ export interface CaseStudy {
   query_id: string;
   prompt: string;
   query_type: QueryType;
-  platforms: Record<EvalPlatform, CaseStudyPlatformData>;
+  platforms: Partial<Record<EvalPlatform, CaseStudyPlatformData>>;
 }
 
 export const caseStudies: CaseStudy[] = [
@@ -191,6 +209,15 @@ export const caseStudies: CaseStudy[] = [
         good_examples: [
           { name: 'Franziska Zeiner', score: 0.97, verification: 'Senior Product Manager at DigitalService in Berlin, background in gaming industry B2C products.' },
           { name: 'Galina Charni', score: 0.97, verification: 'Senior Product Manager in Berlin, confirmed tenure at Zalando focusing on B2C customer experiences.' },
+        ],
+        bad_examples: [],
+      },
+      droid: {
+        score: 0.8609, num_persons: 11,
+        dimensions: { relevance: 0.9, accuracy: 0.9091, uniqueness: 0.6364 }, richness: 0.9727,
+        good_examples: [
+          { name: 'Karin Schoefegger', score: 0.97, verification: 'Verified product leader based in Berlin. LinkedIn and personal website confirm B2C product experience.' },
+          { name: 'Kira Süß', score: 0.95, verification: 'Verified Senior Product Manager based in Berlin, currently at eurodata AG.' },
         ],
         bad_examples: [],
       },
@@ -228,6 +255,15 @@ export const caseStudies: CaseStudy[] = [
         ],
         bad_examples: [],
       },
+      droid: {
+        score: 0.788, num_persons: 10,
+        dimensions: { relevance: 0.82, accuracy: 0.85, uniqueness: 0.65 }, richness: 0.8067,
+        good_examples: [
+          { name: 'Naomi Mishkin', score: 0.96, verification: 'Founder and owner of NAOMI NOMI, a Brooklyn-based sustainable fashion brand.' },
+          { name: 'Laura Fisher', score: 0.95, verification: 'Owner and founder of Revivall Clothing, based in Bozeman, MT - sustainable fashion.' },
+        ],
+        bad_examples: [],
+      },
     },
   },
   {
@@ -260,6 +296,15 @@ export const caseStudies: CaseStudy[] = [
         good_examples: [],
         bad_examples: [],
       },
+      droid: {
+        score: 0.7815, num_persons: 13,
+        dimensions: { relevance: 0.7385, accuracy: 0.9769, uniqueness: 0.6769 }, richness: 0.8667,
+        good_examples: [
+          { name: 'Franciele Merten', score: 0.93, verification: 'Brazilian finance influencer, Instagram @franmerten, verified within 5K-50K follower range.' },
+          { name: 'Renata Veloso', score: 0.93, verification: 'Brazilian financial educator, Instagram @professorarenataveloso, verified finance influencer.' },
+        ],
+        bad_examples: [],
+      },
     },
   },
   {
@@ -290,6 +335,15 @@ export const caseStudies: CaseStudy[] = [
         good_examples: [
           { name: 'Soham Ghosh', score: 0.97, verification: 'Verified current employee at Mistral AI.' },
           { name: 'Antoine Charpentier', score: 0.97, verification: 'Verified current employee at Mistral AI.' },
+        ],
+        bad_examples: [],
+      },
+      droid: {
+        score: 0.814, num_persons: 15,
+        dimensions: { relevance: 0.92, accuracy: 0.8333, uniqueness: 0.54 }, richness: 0.6933,
+        good_examples: [
+          { name: 'Marjorie Janiewicz', score: 0.96, verification: 'Verified Global Head of Revenue and US General Manager at Mistral AI.' },
+          { name: 'Caroline Feldman', score: 0.94, verification: 'Verified current employee at Mistral AI.' },
         ],
         bad_examples: [],
       },

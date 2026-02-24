@@ -517,17 +517,20 @@ export default function ResultsPage() {
                     </div>
                     <p className="text-sm font-medium truncate pr-4">&ldquo;{cs.prompt}&rdquo;</p>
                     <div className="flex items-center gap-4 mt-2">
-                      {EVAL_PLATFORMS.map((p) => (
-                        <span key={p} className="text-xs">
-                          <span className="text-muted-foreground">{EVAL_PLATFORM_LABELS[p]}: </span>
-                          <span className="font-mono font-medium" style={{ color: EVAL_PLATFORM_COLORS[p] }}>
-                            {cs.platforms[p].num_persons > 0 ? pct(cs.platforms[p].score) : 'N/A'}
+                      {EVAL_PLATFORMS.filter((p) => cs.platforms[p]).map((p) => {
+                        const pd = cs.platforms[p]!;
+                        return (
+                          <span key={p} className="text-xs">
+                            <span className="text-muted-foreground">{EVAL_PLATFORM_LABELS[p]}: </span>
+                            <span className="font-mono font-medium" style={{ color: EVAL_PLATFORM_COLORS[p] }}>
+                              {pd.num_persons > 0 ? pct(pd.score) : 'N/A'}
+                            </span>
+                            <span className="text-muted-foreground ml-1">
+                              ({pd.num_persons} results)
+                            </span>
                           </span>
-                          <span className="text-muted-foreground ml-1">
-                            ({cs.platforms[p].num_persons} results)
-                          </span>
-                        </span>
-                      ))}
+                        );
+                      })}
                     </div>
                   </div>
                   {isExpanded ? <ChevronUp className="size-4 text-muted-foreground shrink-0" /> : <ChevronDown className="size-4 text-muted-foreground shrink-0" />}
@@ -535,11 +538,12 @@ export default function ResultsPage() {
 
                 {isExpanded && (
                   <div className="border-t border-border/40 p-4">
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      {EVAL_PLATFORMS.map((p) => {
-                        const pd = cs.platforms[p];
-                        const hasBest = EVAL_PLATFORMS.every(
-                          (pp) => cs.platforms[pp].score <= pd.score,
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                      {EVAL_PLATFORMS.filter((p) => cs.platforms[p]).map((p) => {
+                        const pd = cs.platforms[p]!;
+                        const availablePlatforms = EVAL_PLATFORMS.filter((pp) => cs.platforms[pp]);
+                        const hasBest = availablePlatforms.every(
+                          (pp) => (cs.platforms[pp]?.score ?? 0) <= pd.score,
                         );
                         return (
                           <div
